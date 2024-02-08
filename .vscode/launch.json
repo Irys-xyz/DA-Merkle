@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ts-node",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "${relativeFile}"
+            ],
+            "env": {
+                "TS_NODE_COMPILER_OPTIONS": "{\"noUnusedLocals\":false}",
+                "UV_THREADPOOL_SIZE": "20"
+            },
+            "runtimeArgs": [
+                "--preserve-symlinks",
+                "-r",
+                "./node_modules/ts-node/register"
+            ],
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "console": "internalConsole",
+            // "outputCapture": "std"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Jest: current file",
+            "env": {
+                "NODE_ENV": "test",
+                "IN_TEST_MODE": "true"
+            },
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+                "${fileBasenameNoExtension}",
+                "--config",
+                "jest.config.js",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+        },
+    ]
+}

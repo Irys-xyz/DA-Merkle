@@ -1,34 +1,43 @@
 {
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "declaration": true,
+    "lib": [
+      "es2022",
+      "dom"
+    ],
+    "esModuleInterop": true,
+    "alwaysStrict": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "baseUrl": "./src",
+    "rootDir": "./src",
+    "outDir": "./build"
+  },
+  "include": [
+    "./src/**/*",
+  ],
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ],
+    "esm": false,
+    "transpileOnly": true,
     "compilerOptions": {
-      "target": "es2022",
-      "module": "NodeNext",
-      "moduleResolution": "nodenext",
-      "skipLibCheck": true,
-      "allowSyntheticDefaultImports": true,
-      "allowJs": true,
-      "declaration": true,
-      "lib": ["es2022", "dom"],
-      "esModuleInterop": true,
-      "alwaysStrict": true,
-      "sourceMap": true,
-      "forceConsistentCasingInFileNames": true,
-      "noFallthroughCasesInSwitch": true,
-      "noImplicitReturns": true,
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-      "noImplicitAny": false,
-      "noImplicitThis": false,
-      "strictNullChecks": true,
-      "experimentalDecorators": true,
-      "baseUrl": ".",
-    },
-    "ts-node": {
-      "require": ["tsconfig-paths/register"],
-      "esm": false,
-      "transpileOnly": true,
-      "compilerOptions": {
-        "module": "CommonJS"
-      }
-    },
-  }
-  
+      "module": "CommonJS"
+    }
+  },
+}
