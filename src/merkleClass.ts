@@ -138,10 +138,11 @@ export class DAMerkle {
                 bigIntToBuffer(node.maxOffset, this.timestampSize + this.txIdSize),
             ];
             const leafProof = Buffer.concat(components);
-            return {
+            const proofObj = {
                 offset: node.maxOffset,
                 proof: leafProof
             };
+            return this.augmentProofMetadata(proofObj)
         }
 
         if (node.type == "branch") {
@@ -164,8 +165,23 @@ export class DAMerkle {
 
 
 
-    public async generateProof(targetOffset: bigint) {
-        return this.generateProofWalk(this.root, targetOffset);
+    public async generateProof(targetOffset: bigint): Promise<Proof> {
+        const baseProof = await this.generateProofWalk(this.root, targetOffset);
+        return this.augmentProofMetadata(baseProof)
+
+    }
+
+
+    public augmentProofMetadata(proof: Proof): Proof {
+        // add version
+        // timestamp bytes
+        // tx id bytes
+        // hash bytes
+        // no fancy encoding, just numbers :sunglasses:
+
+        const header = Buffer.from([1, this.timestampSize, this.txIdSize, this.hashSize])
+        proof.proof = Buffer.concat([header, proof.proof])
+        return proof
     }
 
     async generateProofWalk(
@@ -176,10 +192,10 @@ export class DAMerkle {
     ): Promise<Proof> {
         if (node.type == "leaf") {
             if (node.offset !== targetOffset) throw new Error("Resolved to wrong leaf");
-            // TODO: remove
-            const offsetBuf = bigIntToBuffer(node.maxOffset, this.timestampSize + this.txIdSize);
-            const conv = bufferToBigInt(offsetBuf);
-            if (conv !== node.maxOffset) throw new Error("encoding error");
+            // // TODO: remove
+            // const offsetBuf = bigIntToBuffer(node.maxOffset, this.timestampSize + this.txIdSize);
+            // const conv = bufferToBigInt(offsetBuf);
+            // if (conv !== node.maxOffset) throw new Error("encoding error");
 
             const components = [
                 proof,
@@ -495,10 +511,23 @@ export class DAMerkle {
 }
 
 
-export async function validateProof(
+export async function validateProof(id: Uint8Array, dest: bigint, path: Buffer, opts: { hash: (data: Uint8Array | Uint8Array[]) => Promise<Uint8Array> | Uint8Array; }){
+    const version = path.subarray(0, 1)[0]
+    if(version !== 1) throw new Error("Unknown proof path version")
+    const ctx = {
+    timestampSize: path.subarray(1,2)[0],
+    txIdSize: path.subarray(2,3)[0],
+    hashSize: path.subarray(3,4)[0],
+    hash: opts.hash
+    }
+    return validateProofWalk(id, dest,path.subarray(4), ctx)
+
+}
+
+export async function validateProofWalk(
     id: Uint8Array,
     dest: bigint,
-    path: Buffer, ctx: Pick<TreeCtx, "timestampSize" | "txIdSize" | "hashSize"> & { hash: (data: Uint8Array | Uint8Array[]) => Promise<Uint8Array> | Uint8Array; }): Promise<boolean
+    path: Buffer, ctx:  Pick<TreeCtx, "timestampSize" | "txIdSize" | "hashSize"> & { hash: (data: Uint8Array | Uint8Array[]) => Promise<Uint8Array> | Uint8Array; }): Promise<boolean
     > {
 
     const noteSize = ctx.timestampSize + ctx.txIdSize;
@@ -546,14 +575,14 @@ export async function validateProof(
     if (arrayCompare(id, pathHash)) {
         // slide to the left~
         if (dest <= offset) {
-            return await validateProof(
+            return await validateProofWalk(
                 left,
                 dest,
                 remainder, ctx
             );
         }
         // slide to the right~
-        return await validateProof(
+        return await validateProofWalk(
             right,
             dest,
             remainder,
